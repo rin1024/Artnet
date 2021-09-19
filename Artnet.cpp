@@ -140,10 +140,12 @@ uint16_t Artnet::read()
         ArtPollReply.swremote   = 0;
         ArtPollReply.style      = 0;
 
-        #if !defined(ARDUINO_SAMD_ZERO) && !defined(ESP8266) && !defined(ESP32)
+        #if defined(ARDUINO_SAMD_ZERO) || defined(ESP8266) || defined(ESP32)
+          WiFi.macAddress(ArtPollReply.mac);
+        #elif defined(ARDUINO_AVR_MEGA) || defined(ARDUINO_AVR_MEGA2560) // W5500??Arduino uno?ʤΤǤ????ǲ????Ǥ????Ϥ?
           Ethernet.MACAddress(ArtPollReply.mac);
         #else
-          WiFi.macAdress(ArtPollReply.mac);
+          Ethernet.MACAddress(ArtPollReply.mac); // Ethernet2 ?
         #endif
 
         ArtPollReply.numbportsH = 0;
