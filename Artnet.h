@@ -47,10 +47,13 @@ THE SOFTWARE.
 // UDP specific
 #define ART_NET_PORT 6454
 // Opcodes
+// ref: https://github.com/jsimonetti/go-artnet/blob/master/packet/code/opcode.go
+// ref: https://artisticlicence.com/WebSiteMaster/User%20Guides/art-net.pdf
 #define ART_POLL 0x2000
 #define ART_POLL_REPLY 0x2100
 #define ART_DMX 0x5000
 #define ART_SYNC 0x5200
+#define ART_TIME_CODE 0x9700
 // Buffers
 #define MAX_BUFFER_ARTNET 530
 // Packet

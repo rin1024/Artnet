@@ -85,14 +85,17 @@ uint16_t Artnet::read()
 
       if (opcode == ART_DMX)
       {
+        //protVerHi = artnetPacket[10];
+        //protVerLo = artnetPacket[11];
         sequence = artnetPacket[12];
-        incomingUniverse = artnetPacket[14] | artnetPacket[15] << 8;
-        dmxDataLength = artnetPacket[17] | artnetPacket[16] << 8;
+        //physical = artnetPacket[13];
+        incomingUniverse = artnetPacket[14] | artnetPacket[15] << 8; // subUni + Net
+        dmxDataLength = artnetPacket[17] | artnetPacket[16] << 8; // LengthHi + LengthLo
 
         if (artDmxCallback) (*artDmxCallback)(incomingUniverse, dmxDataLength, sequence, artnetPacket + ART_DMX_START, remoteIP);
         return ART_DMX;
       }
-      if (opcode == ART_POLL)
+      else if (opcode == ART_POLL)
       {
         //fill the reply struct, and then send it to the network's broadcast address
         Serial.print("POLL from ");
@@ -173,10 +176,32 @@ uint16_t Artnet::read()
 
         return ART_POLL;
       }
-      if (opcode == ART_SYNC)
+      else if (opcode == ART_SYNC)
       {
         if (artSyncCallback) (*artSyncCallback)(remoteIP);
         return ART_SYNC;
+      }
+      else if (opcode == ART_TIME_CODE) {
+        //protVerHi = artnetPacket[10];
+        //protVerLo = artnetPacket[11];
+        //filter1 = artnetPacket[12];
+        //filter2 = artnetPacket[13];
+        uint8_t frames = artnetPacket[14];
+        uint8_t seconds = artnetPacket[15];
+        uint8_t minutes = artnetPacket[16];
+        uint8_t hours = artnetPacket[17];
+        // 0 = film(24fps)
+        // 1 = ebu(25fps)
+        // 2 = DF(29.97fps)
+        // 3 = SMPTE(30fps)
+        uint8_t type = artnetPacket[18];
+
+        Serial.print("TIME_CODE from ");
+        Serial.println(remoteIP);
+        Serial.printf("[%04d]%03d.%03d.%03d", frames, hours, minutes, seconds);
+        Serial.println();
+
+        return ART_TIME_CODE;
       }
   }
   else
