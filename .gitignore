@@ -1,3 +1,5 @@
+*.un~
+
 # Compiled Object files
 *.slo
 *.lo
