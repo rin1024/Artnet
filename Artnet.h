@@ -36,7 +36,10 @@ THE SOFTWARE.
 #elif defined(ESP32)
     #include <WiFi.h>
     #include <WiFiUdp.h>
-#elif defined(ARDUINO_AVR_MEGA) || defined(ARDUINO_AVR_MEGA2560) // W5500??Arduino uno?ʤΤǤ????ǲ????Ǥ????Ϥ?
+#elif defined(ARDUINO_TEENSY41)
+    #include <NativeEthernet.h>
+    #include <NativeEthernetUdp.h>
+#elif defined(ARDUINO_AVR_MEGA) || defined(ARDUINO_AVR_MEGA2560) // W5500??Arduino uno?
     #include <Ethernet.h>
     #include <EthernetUdp.h>
 #else
@@ -156,11 +159,10 @@ public:
 private:
   uint8_t  node_ip_address[4];
   uint8_t  id[8];
-
-  #if !defined(ARDUINO_SAMD_ZERO) && !defined(ESP8266) && !defined(ESP32)
-    EthernetUDP Udp;
-  #else
+  #if defined(ARDUINO_SAMD_ZERO) || defined(ESP8266) || defined(ESP32)
     WiFiUDP Udp;
+  #else
+    EthernetUDP Udp;
   #endif
   struct artnet_reply_s ArtPollReply;
 

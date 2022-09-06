@@ -58,7 +58,6 @@ void Artnet::setBroadcast(byte bc[])
   //sets the broadcast address
   broadcast = bc;
 }
-
 void Artnet::setBroadcast(IPAddress bc)
 {
   //sets the broadcast address
@@ -122,12 +121,14 @@ uint16_t Artnet::read()
 
         memset(ArtPollReply.goodinput,  0x08, 4);
         memset(ArtPollReply.goodoutput,  0x80, 4);
-        memset(ArtPollReply.porttypes,  0x80, 4);
+        memset(ArtPollReply.porttypes,  0xc0, 4);
 
-        memset(ArtPollReply.shortname, 0, 16);
-        memset(ArtPollReply.longname, 0, 64);
-        sprintf((char *)ArtPollReply.shortname, "artnet arduino");
-        sprintf((char *)ArtPollReply.longname, "Art-Net -> Arduino Bridge");
+        uint8_t shortname [18];
+        uint8_t longname [64];
+        sprintf((char *)shortname, "artnet arduino");
+        sprintf((char *)longname, "Art-Net -> Arduino Bridge");
+        memcpy(ArtPollReply.shortname, shortname, sizeof(shortname));
+        memcpy(ArtPollReply.longname, longname, sizeof(longname));
 
         ArtPollReply.etsaman[0] = 0;
         ArtPollReply.etsaman[1] = 0;
@@ -144,13 +145,13 @@ uint16_t Artnet::read()
         ArtPollReply.swremote   = 0;
         ArtPollReply.style      = 0;
 
-        #if defined(ARDUINO_SAMD_ZERO) || defined(ESP8266) || defined(ESP32)
-          WiFi.macAddress(ArtPollReply.mac);
-        #elif defined(ARDUINO_AVR_MEGA) || defined(ARDUINO_AVR_MEGA2560) // W5500??Arduino uno?ʤΤǤ????ǲ????Ǥ????Ϥ?
-          Ethernet.MACAddress(ArtPollReply.mac);
-        #else
-          Ethernet.MACAddress(ArtPollReply.mac); // Ethernet2 ?
-        #endif
+        //#if defined(ARDUINO_SAMD_ZERO) || defined(ESP8266) || defined(ESP32)
+        //  WiFi.macAddress(ArtPollReply.mac);
+        //#elif defined(ARDUINO_AVR_MEGA) || defined(ARDUINO_AVR_MEGA2560) // W5500??Arduino uno?
+        //  Ethernet.MACAddress(ArtPollReply.mac);
+        //#else
+        //  Ethernet.MACAddress(ArtPollReply.mac); // Ethernet2 ?
+        //#endif
 
         ArtPollReply.numbportsH = 0;
         ArtPollReply.numbports  = 4;
@@ -161,16 +162,15 @@ uint16_t Artnet::read()
         ArtPollReply.bindip[2] = node_ip_address[2];
         ArtPollReply.bindip[3] = node_ip_address[3];
 
-        uint8_t swin[4]  = {0x00,0x01,0x02,0x03};
-        uint8_t swout[4] = {0x00,0x01,0x02,0x03};
+        uint8_t swin[4]  = {0x01,0x02,0x03,0x04};
+        uint8_t swout[4] = {0x01,0x02,0x03,0x04};
         for(uint8_t i = 0; i < 4; i++)
         {
             ArtPollReply.swout[i] = swout[i];
             ArtPollReply.swin[i] = swin[i];
         }
-        memset(ArtPollReply.nodereport, 0, 64);
         sprintf((char *)ArtPollReply.nodereport, "%i DMX output universes active.", ArtPollReply.numbports);
-        Udp.beginPacket(remoteIP, ART_NET_PORT);//send the packet to the Controller that sent ArtPoll
+        Udp.beginPacket(broadcast, ART_NET_PORT);//send the packet to the broadcast address
         Udp.write((uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
         Udp.endPacket();
 
@@ -195,7 +195,7 @@ uint16_t Artnet::read()
         // 2 = DF(29.97fps)
         // 3 = SMPTE(30fps)
         uint8_t type = artnetPacket[18];
-
+        
         Serial.print("TIME_CODE from ");
         Serial.println(remoteIP);
         Serial.printf("[%04d]%03d.%03d.%03d", frames, hours, minutes, seconds);
